@@ -1,0 +1,26 @@
+{% if journals %}
+<div class="list-group">
+  {% for j in journals %}
+  <div class="list-group-item">
+    <div class="d-flex justify-content-between align-items-start">
+      <div style="flex: 1;">
+        <h6 class="mb-1">
+          {% if j.title %}
+          {{ j.title }}
+          {% else %}
+          <em>Untitled</em>
+          {% endif %}
+        </h6>
+        <div class="small text-muted mb-2">📆 {{ j.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+        <p class="mb-0 text-secondary">{{ j.content[:150] }}{% if j.content|length > 150 %}...{% endif %}</p>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-state-icon">📕</div>
+  <p>No journal entries yet. Start reflecting today!</p>
+</div>
+{% endif %}

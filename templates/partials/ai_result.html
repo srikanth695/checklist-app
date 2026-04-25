@@ -1,0 +1,14 @@
+<div class="card">
+  <div class="card-header" style="background: linear-gradient(135deg, #ffc107, #ff9800);">
+    <h5 class="mb-0">✨ Personalized Plan</h5>
+  </div>
+  <div class="card-body">
+    <p class="lead">{{ suggestions.summary }}</p>
+    <h6 class="mt-4 mb-3">📋 Action Steps:</h6>
+    <ol class="ps-3">
+      {% for task in suggestions.tasks %}
+      <li class="mb-2">{{ task }}</li>
+      {% endfor %}
+    </ol>
+  </div>
+</div>

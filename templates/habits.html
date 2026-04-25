@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Habits - Checklist App{% endblock %}
+
+{% block content %}
+<div class="hero" style="background: linear-gradient(135deg, #198754, #146c43);">
+  <h1>🔄 Build Habits</h1>
+  <p>Track your daily and weekly habits to build consistency</p>
+</div>
+
+<div class="row">
+  <div class="col-lg-5">
+    <div class="input-card">
+      <h5>Create New Habit</h5>
+      <form hx-post="{{ url_for('main.add_habit') }}" hx-target="#habits-list" hx-swap="innerHTML">
+        <div class="mb-3">
+          <label class="form-label">Habit Name</label>
+          <input class="form-control" name="name" placeholder="e.g., Morning exercise" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Frequency</label>
+          <select name="frequency" class="form-select">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="every_other_day">Every other day</option>
+          </select>
+        </div>
+        <button class="btn btn-success w-100">Create Habit</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">✨ Active Habits</h5>
+      </div>
+      <div class="card-body">
+        <div id="habits-list">
+          {% include 'partials/habits_list.html' %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

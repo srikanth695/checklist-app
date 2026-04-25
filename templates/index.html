@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule - Checklist App{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <h1>📅 Daily Schedule</h1>
+  <p>Organize your day, one event at a time</p>
+</div>
+
+<div class="row">
+  <div class="col-lg-5">
+    <div class="input-card">
+      <h5>Add New Event</h5>
+      <form hx-post="{{ url_for('main.add_schedule') }}" hx-target="#schedule-list" hx-swap="innerHTML">
+        <div class="mb-3">
+          <label class="form-label">Event Title</label>
+          <input class="form-control" name="title" placeholder="e.g., Team Meeting" required>
+        </div>
+        <div class="mb-3 d-grid gap-2">
+          <div class="row g-2">
+            <div class="col">
+              <label class="form-label">Date</label>
+              <input type="date" name="date" class="form-control" required>
+            </div>
+            <div class="col">
+              <label class="form-label">Time</label>
+              <input type="time" name="time" class="form-control">
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Duration (minutes)</label>
+          <input type="number" name="duration" class="form-control" placeholder="60">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Notes</label>
+          <textarea class="form-control" name="notes" placeholder="Add notes or details..." rows="2"></textarea>
+        </div>
+        <button class="btn btn-primary w-100">Add Event</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">📍 Upcoming Events</h5>
+      </div>
+      <div class="card-body">
+        <div id="schedule-list">
+          {% include 'partials/schedule_list.html' %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

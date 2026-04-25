@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Journal - Checklist App{% endblock %}
+
+{% block content %}
+<div class="hero" style="background: linear-gradient(135deg, #0dcaf0, #0b98d4);">
+  <h1>📝 Journal</h1>
+  <p>Reflect on your day and track your thoughts</p>
+</div>
+
+<div class="row">
+  <div class="col-lg-5">
+    <div class="input-card">
+      <h5>Write New Entry</h5>
+      <form hx-post="{{ url_for('main.add_journal') }}" hx-target="#journal-list" hx-swap="innerHTML">
+        <div class="mb-3">
+          <label class="form-label">Title (Optional)</label>
+          <input class="form-control" name="title" placeholder="e.g., Today's Reflection">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Your Thoughts</label>
+          <textarea class="form-control" name="content" placeholder="Write your journal entry here..." rows="6" required></textarea>
+        </div>
+        <button class="btn btn-info w-100">Save Entry</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">📚 Recent Entries</h5>
+      </div>
+      <div class="card-body">
+        <div id="journal-list">
+          {% include 'partials/journal_list.html' %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

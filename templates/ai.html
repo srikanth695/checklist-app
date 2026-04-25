@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Goals & AI - Checklist App{% endblock %}
+
+{% block content %}
+<div class="hero" style="background: linear-gradient(135deg, #ffc107, #ff9800);">
+  <h1>🎯 Goals & Suggestions</h1>
+  <p>Get personalized suggestions for your goals</p>
+</div>
+
+<div class="row">
+  <div class="col-lg-5">
+    <div class="input-card">
+      <h5>Get Goal Suggestions</h5>
+      <form id="ai-form" hx-post="{{ url_for('main.ai_suggest') }}" hx-target="#ai-result" hx-swap="innerHTML">
+        <div class="mb-3">
+          <label class="form-label">Choose a Goal</label>
+          <select name="goal_type" class="form-select">
+            <option value="get_healthy">💪 Get Healthy</option>
+            <option value="complete_course">📚 Complete a Course</option>
+            <option value="finish_project">🚀 Finish a Project</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Add Context (Optional)</label>
+          <textarea name="details" class="form-control" placeholder="e.g., I have 3 months, working part-time..." rows="3"></textarea>
+        </div>
+        <button class="btn btn-warning w-100">Generate Plan</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div id="ai-result">
+      <div class="empty-state">
+        <div class="empty-state-icon">💡</div>
+        <p>Select a goal and click "Generate Plan" to get personalized suggestions</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
