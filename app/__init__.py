@@ -15,6 +15,16 @@ def create_app():
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'devkey')
     db.init_app(app)
 
+    @app.context_processor
+    def inject_icons():
+        return {
+            'icon_tasks': 'checklist_rtl',
+            'icon_schedule': 'schedule',
+            'icon_habits': 'settings_suggest',
+            'icon_journal': 'menu_book',
+            'icon_goals': 'flag'
+        }
+
     with app.app_context():
         from . import models, routes
         db.create_all()

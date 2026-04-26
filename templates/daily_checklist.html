@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Daily Checklist - Checklist App{% endblock %}
+
+{% block content %}
+<div class="daily-checklist-container">
+  <!-- Hero Section -->
+  <div class="hero">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h1>📋 Today's Checklist</h1>
+        <p>{{ now.strftime('%A, %B %d, %Y') }}</p>
+      </div>
+      <div class="text-end">
+        <div class="progress-ring">
+          <div class="progress-value">{{ completed_count }}/{{ total_count }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <!-- Main Checklist Column -->
+    <div class="col-lg-8">
+      <div class="card">
+        <h5 class="mb-4">
+          <span class="material-symbols-outlined me-2">checklist_rtl</span>
+          Tasks for Today
+        </h5>
+
+        {% if items %}
+          <div class="checklist-items">
+            {% for item in items %}
+              <div class="checklist-item-row mb-3" data-item-id="{{ item.id }}">
+                <div class="d-flex align-items-center gap-3">
+                  <input 
+                    type="checkbox" 
+                    class="checklist-checkbox" 
+                    data-item-id="{{ item.id }}"
+                    {% if item.completed %}checked{% endif %}
+                    onchange="toggleChecklistItem(this, {{ item.id }})"
+                  >
+                  <div class="flex-grow-1">
+                    <div class="checklist-item-title {% if item.completed %}completed{% endif %}">
+                      {{ item.title }}
+                    </div>
+                    {% if item.description %}
+                      <small class="text-muted d-block">{{ item.description }}</small>
+                    {% endif %}
+                  </div>
+                  <span class="badge bg-{% if item.priority == 'high' %}danger{% elif item.priority == 'medium' %}warning{% else %}info{% endif %}">
+                    {{ item.priority.upper() }}
+                  </span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="mt-4">
+            <div class="d-flex justify-content-between mb-2">
+              <small>Progress</small>
+              <small id="progress-text">{{ completed_count }}/{{ total_count }} completed</small>
+            </div>
+            <div class="progress" style="height: 8px;">
+              <div class="progress-bar" style="width: {{ (completed_count / total_count * 100)|int }}%"></div>
+            </div>
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <div class="empty-state-icon">🎯</div>
+            <p>No items for today yet.</p>
+            <a href="{{ url_for('main.goal_setup') }}" class="btn btn-primary btn-sm">Create a Goal</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Progress Trends Column -->
+    <div class="col-lg-4">
+      <!-- Quick Stats -->
+      <div class="card mb-3">
+        <h6 class="mb-3">This Week</h6>
+        <div class="stats-grid">
+          {% for day_metric in past_7_days %}
+            <div class="stat-item text-center">
+              <div class="stat-date">{{ day_metric.date.strftime('%a') }}</div>
+              <div class="stat-progress">
+                <div class="stat-circle" style="--completion: {{ (day_metric.tasks_completed / day_metric.tasks_total * 100)|int if day_metric.tasks_total > 0 else 0 }}%">
+                  {{ (day_metric.tasks_completed / day_metric.tasks_total * 100)|int if day_metric.tasks_total > 0 else 0 }}%
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <p class="text-muted small">No data yet</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card">
+        <h6 class="mb-3">Quick Actions</h6>
+        <a href="{{ url_for('main.goal_setup') }}" class="btn btn-primary w-100 mb-2">
+          <span class="material-symbols-outlined">add</span> New Goal
+        </a>
+        <a href="{{ url_for('main.my_goals') }}" class="btn btn-outline-primary w-100">
+          <span class="material-symbols-outlined">flag</span> View All Goals
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.daily-checklist-container {
+  padding: 1rem;
+}
+
+.checklist-items {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.checklist-item-row {
+  padding: 1rem;
+  border: 1px solid var(--md-sys-color-surface-variant);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.checklist-item-row:hover {
+  background-color: rgba(208, 188, 255, 0.05);
+  border-color: var(--md-sys-color-primary);
+}
+
+.checklist-item-row.completed {
+  opacity: 0.7;
+}
+
+.checklist-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.checklist-item-title {
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+}
+
+.checklist-item-title.completed {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-date {
+  font-size: 0.75rem;
+  color: #999;
+  margin-bottom: 0.5rem;
+}
+
+.stat-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--md-sys-color-primary) 0deg calc(var(--completion) * 3.6deg),
+    var(--md-sys-color-surface-variant) calc(var(--completion) * 3.6deg) 360deg
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+.progress-ring {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(208, 188, 255, 0.2), rgba(208, 188, 255, 0.05));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.progress-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--md-sys-color-primary);
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, var(--md-sys-color-primary), #b39ddb);
+}
+
+@media (max-width: 768px) {
+  .daily-checklist-container {
+    padding: 0.5rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(7, 1fr);
+  }
+}
+</style>
+
+<script>
+function toggleChecklistItem(checkbox, itemId) {
+  const formData = new FormData();
+  
+  fetch(`/api/checklist-item/${itemId}/toggle`, {
+    method: 'POST',
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.completed !== undefined) {
+      checkbox.checked = data.completed;
+      const row = document.querySelector(`[data-item-id="${itemId}"]`);
+      if (row) {
+        if (data.completed) {
+          row.classList.add('completed');
+          row.style.opacity = '0.7';
+        } else {
+          row.classList.remove('completed');
+          row.style.opacity = '1';
+        }
+      }
+      // Update progress text
+      updateProgress();
+    }
+  })
+  .catch(err => console.error('Error:', err));
+}
+
+function updateProgress() {
+  const checklist = document.querySelectorAll('.checklist-checkbox');
+  const completed = Array.from(checklist).filter(c => c.checked).length;
+  const total = checklist.length;
+  const progressText = document.getElementById('progress-text');
+  if (progressText) {
+    progressText.textContent = `${completed}/${total} completed`;
+  }
+  const progressBar = document.querySelector('.progress-bar');
+  if (progressBar) {
+    progressBar.style.width = (total > 0 ? (completed / total * 100) : 0) + '%';
+  }
+}
+</script>
+{% endblock %}

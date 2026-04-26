@@ -5,19 +5,22 @@ A comprehensive Python + Flask app for productivity management. Track daily sche
 ## Features
 
 ### Core Modules
+- **✅ Daily Checklist**: Today's tasks with progress tracking and 7-day trend visualization
+- **🎯 Goal Setup**: Prompt-based 4-step wizard to create goals with categories and timeframes
+- **📋 My Goals**: Dashboard showing all goals with progress tracking and category breakdown
 - **📅 Schedule**: Daily event planning and time blocking
 - **🔄 Habits**: Streak tracking, completion rates, categorized habits
 - **📝 Journal**: Mood tracking, reflection-based journaling, tags
-- **🎯 Goals & AI**: Goal-based suggestions and planning (static suggestions)
-- **📊 Analytics**: Daily metrics, productivity tracking, mood correlation
 - **⏰ Routines**: Morning/evening/custom routine templates
 - **✅ Task Management**: Priority, deadline, effort estimation, recurring tasks, tags
+- **📊 Analytics**: Daily metrics, productivity tracking, mood correlation
 
 ### UI/UX
 - 🌙 **Dark Mode Toggle**: Persistent theme with localStorage
 - 📱 **Responsive Design**: Mobile-friendly multi-page app
-- 🎨 **Modern Styling**: Bootstrap 5 with custom gradient cards and smooth transitions
+- 🎨 **Material-3 Design System**: Purple gradient hero, smooth animations, CSS variables for theming
 - ⚡ **HTMX Integration**: Fast, reactive form submissions without page reload
+- 🎨 **Material Symbols**: Icon integration for modern interface
 
 ## Quick Start
 
@@ -54,8 +57,10 @@ This creates:
 - 6 habits with tracking history
 - 4 schedule events
 - 3 routine templates
-- 4 journal entries with mood tracking
+- 3 journal entries with mood tracking
 - 7 days of daily metrics
+- 4 sample goals (Fitness, Learning, Career)
+- 7 daily checklist items linked to goals and custom tasks
 
 ### 4. Run the app
 

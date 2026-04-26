@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, date
 from app import create_app, db
 from app.models import (
     Task, Habit, HabitEntry, ScheduleEvent, JournalEntry, 
-    Routine, DailyMetric
+    Routine, DailyMetric, Goal, DailyChecklistItem
 )
 
 def seed_database():
@@ -290,6 +290,100 @@ def seed_database():
         db.session.add_all(metrics)
         print(f"✓ Added {len(metrics)} daily metrics")
 
+        # === GOALS ===
+        goals = [
+            Goal(
+                title="Exercise 4 times per week (1 Month)",
+                description="Current: I exercise occasionally, about 1-2 times per week\nDesired: Exercise 4 times per week consistently and build a strong fitness routine",
+                category="fitness",
+                timeframe="1_month",
+                target_metric="Exercise 4 times per week consistently",
+                current_progress=12,
+                target_progress=100,
+                status="active"
+            ),
+            Goal(
+                title="Complete 2 online courses (3 Month)",
+                description="Current: Haven't completed any online courses in the past year\nDesired: Complete 2 meaningful online courses to develop new skills",
+                category="learning",
+                timeframe="3_month",
+                target_metric="2 courses completed",
+                current_progress=0,
+                target_progress=100,
+                status="active"
+            ),
+            Goal(
+                title="Write 3 blog posts (1 Month)",
+                description="Current: Haven't written anything in months\nDesired: Share knowledge by writing 3 technical blog posts",
+                category="career",
+                timeframe="1_month",
+                target_metric="3 blog posts published",
+                current_progress=0,
+                target_progress=100,
+                status="active"
+            ),
+            Goal(
+                title="Read one full book (1 Month)",
+                description="Current: Reading sporadically\nDesired: Read one complete book from start to finish",
+                category="learning",
+                timeframe="1_month",
+                target_metric="1 book completed",
+                current_progress=40,
+                target_progress=100,
+                status="active"
+            ),
+        ]
+        db.session.add_all(goals)
+        db.session.flush()  # Flush to get goal IDs
+        print(f"✓ Added {len(goals)} goals")
+
+        # === DAILY CHECKLIST ITEMS ===
+        checklist_items = []
+        for goal in goals:
+            item = DailyChecklistItem(
+                date=today,
+                source_type='goal',
+                source_id=goal.id,
+                title=goal.title,
+                description=f"Work on: {goal.target_metric}",
+                priority='high',
+                completed=False
+            )
+            checklist_items.append(item)
+        
+        # Add some custom checklist items
+        custom_items = [
+            DailyChecklistItem(
+                date=today,
+                source_type='custom',
+                title='Morning meditation',
+                description='10 minutes meditation session',
+                priority='medium',
+                completed=False
+            ),
+            DailyChecklistItem(
+                date=today,
+                source_type='custom',
+                title='Code review',
+                description='Review pull requests from the team',
+                priority='high',
+                completed=True,
+                completed_at=datetime.now() - timedelta(hours=2)
+            ),
+            DailyChecklistItem(
+                date=today,
+                source_type='custom',
+                title='Team standup',
+                description='9:30 AM sync with the team',
+                priority='high',
+                completed=True,
+                completed_at=datetime.now() - timedelta(hours=3)
+            ),
+        ]
+        checklist_items.extend(custom_items)
+        db.session.add_all(checklist_items)
+        print(f"✓ Added {len(checklist_items)} daily checklist items")
+
         # Commit all changes
         db.session.commit()
         print("\n✅ Database successfully seeded with sample data!")
@@ -300,6 +394,8 @@ def seed_database():
         print(f"  - {len(routines)} routines")
         print(f"  - {len(journal_entries)} journal entries")
         print(f"  - {len(metrics)} daily metrics")
+        print(f"  - {len(goals)} goals")
+        print(f"  - {len(checklist_items)} daily checklist items")
 
 if __name__ == "__main__":
     seed_database()

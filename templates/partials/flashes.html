@@ -1,0 +1,9 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="flash-snack" class="position-fixed bottom-0 start-50 translate-middle-x mb-4" style="z-index:1080;">
+      {% for category, msg in messages %}
+        <div class="snackbar snackbar-{{ category }}">{{ msg }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}

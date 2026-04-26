@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}My Goals - Checklist App{% endblock %}
+
+{% block content %}
+<div class="goals-container">
+  <!-- Header -->
+  <div class="hero">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h1>🎯 My Goals</h1>
+        <p>Track your progress towards your goals</p>
+      </div>
+      <a href="{{ url_for('main.goal_setup') }}" class="btn btn-primary">
+        <span class="material-symbols-outlined">add</span>
+        New Goal
+      </a>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <!-- Active Goals -->
+    <div class="col-lg-8">
+      {% set active_goals = goal_stats|selectattr('goal.status', 'equalto', 'active')|list %}
+      
+      {% if active_goals %}
+        <h5 class="mb-4">
+          <span class="material-symbols-outlined">task_alt</span>
+          Active Goals ({{ active_goals|length }})
+        </h5>
+        
+        <div class="goals-list">
+          {% for item in active_goals %}
+            <div class="goal-card">
+              <div class="goal-card-header">
+                <div>
+                  <h6 class="goal-title">{{ item.goal.title }}</h6>
+                  <small class="goal-meta">
+                    <span class="category-badge">{{ item.goal.category|title }}</span>
+                    <span class="timeframe-badge">{{ item.goal.timeframe|replace('_', ' ')|title }}</span>
+                  </small>
+                </div>
+                <span class="goal-status-badge">Active</span>
+              </div>
+              
+              <p class="goal-description">{{ item.goal.description }}</p>
+              
+              <div class="goal-progress">
+                <div class="progress-header">
+                  <small>Progress</small>
+                  <small class="progress-text">
+                    {{ item.completed_items }}/{{ item.total_items }} completed
+                  </small>
+                </div>
+                <div class="progress" style="height: 10px;">
+                  <div class="progress-bar" style="width: {{ item.completion_pct|int }}%"></div>
+                </div>
+                <div class="progress-percentage">{{ item.completion_pct|int }}%</div>
+              </div>
+              
+              <div class="goal-card-footer">
+                <small class="text-muted">
+                  Created {{ item.goal.created_at.strftime('%b %d, %Y') }}
+                </small>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon">🎯</div>
+          <p>No active goals yet.</p>
+          <a href="{{ url_for('main.goal_setup') }}" class="btn btn-primary">Create Your First Goal</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Sidebar Stats -->
+    <div class="col-lg-4">
+      <!-- Summary Stats -->
+      <div class="card mb-3">
+        <h6 class="mb-3">Summary</h6>
+        <div class="stat-row">
+          <div class="stat-label">Active Goals</div>
+          <div class="stat-value">{{ active_goals|length }}</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Total Progress</div>
+          <div class="stat-value">
+            {% set total_completed = active_goals|map(attribute='completed_items')|sum %}
+            {% set total_items = active_goals|map(attribute='total_items')|sum %}
+            {% if total_items > 0 %}
+              {{ ((total_completed / total_items) * 100)|int }}%
+            {% else %}
+              0%
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Goal Categories -->
+      <div class="card">
+        <h6 class="mb-3">Categories</h6>
+        {% set categories = active_goals|map(attribute='goal.category')|unique|list %}
+        {% if categories %}
+          <div class="categories-list">
+            {% for cat in categories %}
+              <div class="category-item">
+                <span class="category-name">{{ cat|title }}</span>
+                <span class="category-count">
+                  {{ active_goals|selectattr('goal.category', 'equalto', cat)|list|length }}
+                </span>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted small">No goals yet</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Completed Goals Section -->
+  {% set completed_goals = goal_stats|selectattr('goal.status', 'equalto', 'completed')|list %}
+  {% if completed_goals %}
+    <div class="mt-5 pt-4 border-top">
+      <h5 class="mb-4">
+        <span class="material-symbols-outlined">check_circle</span>
+        Completed Goals ({{ completed_goals|length }})
+      </h5>
+      
+      <div class="completed-goals-grid">
+        {% for item in completed_goals %}
+          <div class="completed-goal-card">
+            <div class="completed-checkmark">✓</div>
+            <h6>{{ item.goal.title }}</h6>
+            <small class="text-muted">{{ item.goal.created_at.strftime('%b %d, %Y') }}</small>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<style>
+.goals-container {
+  padding: 1rem;
+}
+
+.goals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.goal-card {
+  background: #25232a;
+  border: 1px solid var(--md-sys-color-surface-variant);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.goal-card:hover {
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 8px 24px rgba(208, 188, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.goal-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.goal-title {
+  margin: 0 0 0.5rem 0;
+  color: var(--md-sys-color-on-surface);
+}
+
+.goal-meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.category-badge, .timeframe-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(208, 188, 255, 0.1);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: var(--md-sys-color-primary);
+}
+
+.goal-status-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: rgba(46, 125, 50, 0.2);
+  color: #4caf50;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.goal-description {
+  color: #bbb;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  white-space: pre-wrap;
+}
+
+.goal-progress {
+  margin-bottom: 1rem;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.progress-text {
+  color: var(--md-sys-color-primary);
+  font-weight: 600;
+}
+
+.progress {
+  background: rgba(208, 188, 255, 0.1);
+  border-radius: 4px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, var(--md-sys-color-primary), #b39ddb);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.progress-percentage {
+  text-align: right;
+  font-size: 0.85rem;
+  color: var(--md-sys-color-primary);
+  font-weight: 600;
+  margin-top: 0.3rem;
+}
+
+.goal-card-footer {
+  border-top: 1px solid var(--md-sys-color-surface-variant);
+  padding-top: 1rem;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--md-sys-color-surface-variant);
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--md-sys-color-primary);
+}
+
+.categories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.category-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: rgba(208, 188, 255, 0.03);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.category-name {
+  color: var(--md-sys-color-on-surface);
+}
+
+.category-count {
+  background: var(--md-sys-color-primary);
+  color: #1b1b1b;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.completed-goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.completed-goal-card {
+  position: relative;
+  padding: 1.5rem;
+  background: rgba(46, 125, 50, 0.1);
+  border: 1px solid rgba(46, 125, 50, 0.3);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.completed-checkmark {
+  font-size: 2rem;
+  color: #4caf50;
+  margin-bottom: 0.5rem;
+}
+
+.completed-goal-card h6 {
+  margin-bottom: 0.5rem;
+  color: var(--md-sys-color-on-surface);
+}
+
+@media (max-width: 768px) {
+  .completed-goals-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+
+[data-bs-theme="light"] .goal-card {
+  background: #f8f6fb;
+  border-color: #e7e0ec;
+}
+
+[data-bs-theme="light"] .goal-card:hover {
+  background: #f0ebf8;
+}
+
+[data-bs-theme="light"] .progress {
+  background: rgba(103, 80, 164, 0.1);
+}
+</style>
+{% endblock %}

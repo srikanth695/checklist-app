@@ -1,0 +1,75 @@
+Replace your current blocky styles with these Material-inspired properties:
+
+:root {
+    --md-sys-color-primary: #D0BCFF; /* Light Purple / M3 Primary */
+    --md-sys-color-surface: #1C1B1F;
+    --md-sys-color-surface-variant: #49454F;
+    --md-sys-color-on-surface: #E6E1E5;
+    --radius-lg: 28px; /* Material 3 uses very rounded corners */
+    --radius-md: 16px;
+}
+
+body {
+    background-color: var(--md-sys-color-surface);
+    font-family: 'Roboto', sans-serif;
+    color: var(--md-sys-color-on-surface);
+}
+
+/* Transform your cards into Material Surfaces */
+.card {
+    background: #25232a; /* Slightly lighter than background */
+    border-radius: var(--radius-lg);
+    border: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    padding: 24px;
+    transition: transform 0.2s ease;
+}
+
+/* Modern Inputs */
+input, textarea, select {
+    background: transparent;
+    border: 1px solid var(--md-sys-color-surface-variant);
+    border-radius: 8px;
+    padding: 12px;
+    color: white;
+}
+
+input:focus {
+    border-color: var(--md-sys-color-primary);
+    outline: 2px solid var(--md-sys-color-primary);
+}
+
+/* Primary Action Buttons */
+.btn-primary {
+    background-color: var(--md-sys-color-primary);
+    color: #381E72; /* High contrast text */
+    border-radius: 100px; /* Pill shape */
+    font-weight: 500;
+    padding: 10px 24px;
+    text-transform: capitalize;
+}
+
+
+
+Python/Flask Logic Improvements
+To support a modern UI, you should make the backend more "reactive." Here are a few logic-side suggestions:
+
+Context Processors for Icons:
+Instead of hardcoding emojis, use a helper to inject Material Symbols.
+
+@app.context_processor
+def inject_icons():
+    return dict(icon_habit="cached", icon_journal="edit_note", icon_schedule="event")
+
+Flash Message Categorization:
+Material Design uses "Snackbars" for feedback. Update your Flask flashes to include categories that map to Material colors:
+
+flash('Habit saved!', 'success') # Maps to green snackbar
+flash('Error saving entry', 'error') # Maps to red snackbar
+
+Feature,Current State,Material 3 Upgrade
+Corners,Sharp/Square,28px Rounded (Container-style)
+Layout,50/50 Split Columns,Asymmetric Grid (Give the list more room)
+Header,Solid Blue/Green/Cyan,Glassmorphism or subtle Gradient overlays
+Navigation,Top text links,Navigation Rail (Left side) or Bottom Nav Bar
+Empty State,Icon + Text,Illutration + Outlined Button (Encourage action)

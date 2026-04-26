@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+
+{% block title %}Setup Goal - Checklist App{% endblock %}
+
+{% block content %}
+<div class="goal-setup-container">
+  <!-- Header -->
+  <div class="hero">
+    <h1>🎯 Create Your Goal</h1>
+    <p>Answer a few questions to set up a meaningful goal and track your progress</p>
+  </div>
+
+  <div class="row justify-content-center mt-4">
+    <div class="col-lg-6">
+      <div class="card">
+        <form method="POST" action="{{ url_for('main.goal_setup_confirm') }}">
+          
+          <!-- Step 1: Category Selection -->
+          <div class="form-section mb-4">
+            <h5 class="form-section-title">
+              <span class="step-number">1</span>
+              What area of your life are you focusing on?
+            </h5>
+            <div class="category-options">
+              <label class="category-option">
+                <input type="radio" name="category" value="health" required>
+                <span class="option-icon">🏥</span>
+                <span class="option-text">Health & Wellness</span>
+              </label>
+              
+              <label class="category-option">
+                <input type="radio" name="category" value="fitness">
+                <span class="option-icon">💪</span>
+                <span class="option-text">Fitness & Exercise</span>
+              </label>
+              
+              <label class="category-option">
+                <input type="radio" name="category" value="career">
+                <span class="option-icon">💼</span>
+                <span class="option-text">Career & Work</span>
+              </label>
+              
+              <label class="category-option">
+                <input type="radio" name="category" value="learning">
+                <span class="option-icon">📚</span>
+                <span class="option-text">Learning & Skills</span>
+              </label>
+              
+              <label class="category-option">
+                <input type="radio" name="category" value="personal">
+                <span class="option-icon">🌟</span>
+                <span class="option-text">Personal Growth</span>
+              </label>
+              
+              <label class="category-option">
+                <input type="radio" name="category" value="relationships">
+                <span class="option-icon">💖</span>
+                <span class="option-text">Relationships</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Step 2: Timeframe -->
+          <div class="form-section mb-4">
+            <h5 class="form-section-title">
+              <span class="step-number">2</span>
+              How long do you want to work on this?
+            </h5>
+            <div class="timeframe-options">
+              <label class="timeframe-option">
+                <input type="radio" name="timeframe" value="1_week" required>
+                <span>1 Week</span>
+              </label>
+              <label class="timeframe-option">
+                <input type="radio" name="timeframe" value="2_week">
+                <span>2 Weeks</span>
+              </label>
+              <label class="timeframe-option">
+                <input type="radio" name="timeframe" value="1_month">
+                <span>1 Month</span>
+              </label>
+              <label class="timeframe-option">
+                <input type="radio" name="timeframe" value="3_month">
+                <span>3 Months</span>
+              </label>
+              <label class="timeframe-option">
+                <input type="radio" name="timeframe" value="6_month">
+                <span>6 Months</span>
+              </label>
+              <label class="timeframe-option">
+                <input type="radio" name="timeframe" value="1_year">
+                <span>1 Year</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Step 3: Current Situation -->
+          <div class="form-section mb-4">
+            <h5 class="form-section-title">
+              <span class="step-number">3</span>
+              What is your current situation?
+            </h5>
+            <textarea 
+              name="current_situation" 
+              class="form-control form-control-lg" 
+              rows="3"
+              placeholder="e.g., I exercise 2 times a week irregularly"
+              required
+            ></textarea>
+          </div>
+
+          <!-- Step 4: Desired Outcome -->
+          <div class="form-section mb-4">
+            <h5 class="form-section-title">
+              <span class="step-number">4</span>
+              What do you want to achieve?
+            </h5>
+            <textarea 
+              name="desired_outcome" 
+              class="form-control form-control-lg" 
+              rows="3"
+              placeholder="e.g., Exercise 4 times a week consistently"
+              required
+            ></textarea>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="d-grid gap-2 mt-5">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <span class="material-symbols-outlined me-2">check_circle</span>
+              Create Goal & Add to Checklist
+            </button>
+            <a href="{{ url_for('main.daily_checklist') }}" class="btn btn-outline-primary btn-lg">
+              Cancel
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tips Section -->
+      <div class="card mt-4 bg-info-subtle">
+        <h6 class="mb-3">💡 Tips for Setting Effective Goals</h6>
+        <ul class="small mb-0">
+          <li>Be specific about what you want to achieve</li>
+          <li>Choose a realistic timeframe</li>
+          <li>Break down large goals into smaller daily tasks</li>
+          <li>Review your progress regularly</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.goal-setup-container {
+  padding: 1rem;
+}
+
+.form-section {
+  padding: 1.5rem;
+  background: rgba(208, 188, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid var(--md-sys-color-surface-variant);
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  color: var(--md-sys-color-on-surface);
+}
+
+.step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--md-sys-color-primary);
+  color: #1b1b1b;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+/* Category Options */
+.category-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.category-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px solid var(--md-sys-color-surface-variant);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+
+.category-option:hover {
+  border-color: var(--md-sys-color-primary);
+  background: rgba(208, 188, 255, 0.05);
+}
+
+.category-option input[type="radio"] {
+  display: none;
+}
+
+.category-option input[type="radio"]:checked + .option-icon {
+  transform: scale(1.2);
+}
+
+.category-option input[type="radio"]:checked ~ * {
+  color: var(--md-sys-color-primary);
+}
+
+.option-icon {
+  font-size: 2rem;
+  transition: transform 0.2s ease;
+}
+
+.option-text {
+  font-size: 0.9rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Timeframe Options */
+.timeframe-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 1rem;
+}
+
+.timeframe-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border: 2px solid var(--md-sys-color-surface-variant);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  text-align: center;
+}
+
+.timeframe-option:hover {
+  border-color: var(--md-sys-color-primary);
+  background: rgba(208, 188, 255, 0.05);
+}
+
+.timeframe-option input[type="radio"] {
+  display: none;
+}
+
+.timeframe-option input[type="radio"]:checked {
+  border-color: var(--md-sys-color-primary);
+}
+
+.timeframe-option input[type="radio"]:checked ~ span {
+  color: var(--md-sys-color-primary);
+  font-weight: 600;
+}
+
+/* Form Controls */
+.form-control-lg {
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(208, 188, 255, 0.02);
+  border: 1px solid var(--md-sys-color-surface-variant);
+}
+
+.form-control-lg:focus {
+  background: rgba(208, 188, 255, 0.05);
+  border-color: var(--md-sys-color-primary);
+}
+
+.btn-lg {
+  padding: 0.875rem 1.5rem;
+  border-radius: 100px;
+}
+
+.bg-info-subtle {
+  background: rgba(208, 188, 255, 0.08) !important;
+}
+
+@media (max-width: 768px) {
+  .category-options {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .timeframe-options {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
+{% endblock %}

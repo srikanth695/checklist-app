@@ -78,3 +78,30 @@ class DailyMetric(db.Model):
     avg_mood = db.Column(db.Float, default=0.0)
     focus_minutes = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Goal(db.Model):
+    __tablename__ = 'goals'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(300), nullable=False)
+    description = db.Column(db.Text)
+    category = db.Column(db.String(100))  # health, career, learning, fitness, etc.
+    timeframe = db.Column(db.String(50))  # 1_week, 2_week, 1_month, 3_month, 6_month, 1_year
+    target_metric = db.Column(db.String(200))  # e.g., "Exercise 30 min", "Read 20 pages"
+    current_progress = db.Column(db.Integer, default=0)
+    target_progress = db.Column(db.Integer, default=100)
+    status = db.Column(db.String(20), default='active')  # active, paused, completed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class DailyChecklistItem(db.Model):
+    __tablename__ = 'daily_checklist_items'
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False)
+    source_type = db.Column(db.String(20))  # 'goal', 'habit', 'task', 'custom'
+    source_id = db.Column(db.Integer)  # ID of the goal, habit, or task
+    title = db.Column(db.String(300), nullable=False)
+    description = db.Column(db.Text)
+    priority = db.Column(db.String(20), default='medium')  # low, medium, high
+    completed = db.Column(db.Boolean, default=False)
+    completed_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
