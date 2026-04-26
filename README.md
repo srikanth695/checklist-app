@@ -41,7 +41,7 @@ source .venv/bin/activate
 ### 2. Install dependencies
 
 ```bash
-pip install -r "requrments.txt"
+pip install -r requirements.txt
 ```
 
 ### 3. (Optional) Seed sample data
@@ -125,6 +125,7 @@ The app uses **SQLite** (`data.db` in project root) with the following tables:
 │   ├── models.py            # SQLAlchemy models
 │   ├── routes.py            # Flask routes
 │   ├── ai.py                # Static suggestion engine
+│   ├── validators.py        # Input validation utilities
 │   └── static/
 │       ├── styles.css       # Main stylesheet + dark mode
 │       └── favicon.svg      # App icon
@@ -138,7 +139,8 @@ The app uses **SQLite** (`data.db` in project root) with the following tables:
 ├── run.py                   # Flask development server
 ├── seed.py                  # Database seeding script
 ├── test_app.py              # Unit & integration tests
-├── requrments.txt           # Python dependencies
+├── requirements.txt         # Python dependencies
+├── .gitignore               # Git ignore patterns
 └── README.md                # This file
 ```
 
@@ -189,6 +191,73 @@ Edit the `get_ai_suggestions()` function in `app/ai.py` to add new goal types.
 - **Database**: SQLite
 - **Frontend**: Bootstrap 5, HTMX, JavaScript (dark mode)
 - **Testing**: Pytest, Pytest-Flask
+
+## Deployment Guide
+
+### Environment Setup
+
+Before deploying, configure environment variables:
+
+```bash
+# Create a .env file (do NOT commit to git)
+SECRET_KEY=<your-secure-random-key>
+FLASK_ENV=production
+```
+
+Generate a secure SECRET_KEY:
+```python
+import secrets
+print(secrets.token_urlsafe(32))
+```
+
+### Security Checklist
+
+- ✅ **SECRET_KEY**: Set via environment variable (fails loudly in production if missing)
+- ✅ **Debug Mode**: Disabled in production (controlled by `FLASK_ENV`)
+- ✅ **Input Validation**: All form inputs validated with length limits and type checking
+- ✅ **SQL Injection**: SQLAlchemy ORM prevents injection attacks
+- ✅ **Database Indexes**: Added for query performance with large datasets
+- ✅ **Error Handling**: All database operations wrapped with proper exception handling and logging
+
+### Production Deployment
+
+1. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Use a production WSGI server** (not Flask development server):
+   ```bash
+   pip install gunicorn
+   gunicorn -w 4 -b 0.0.0.0:5000 "app:create_app()"
+   ```
+
+3. **Database considerations**:
+   - For larger deployments, migrate from SQLite to PostgreSQL/MySQL
+   - Update `SQLALCHEMY_DATABASE_URI` in `app/__init__.py`
+   - Use database migrations with Flask-Migrate:
+     ```bash
+     pip install Flask-Migrate
+     flask db init
+     flask db migrate
+     flask db upgrade
+     ```
+
+4. **Enable logging** for production monitoring:
+   - Add application logs to file
+   - Monitor error rates and performance
+
+5. **HTTPS/SSL**:
+   - Use a reverse proxy (Nginx) with SSL termination
+   - Enable HSTS headers
+
+### Common Issues
+
+**Issue**: Database locked errors
+- **Solution**: SQLite has limited concurrency. Migrate to PostgreSQL for multi-user deployments.
+
+**Issue**: Large JSON responses slow
+- **Solution**: Add pagination to routes that query many items. See `past_7_days` in daily_checklist route for example.
 
 ## License
 
