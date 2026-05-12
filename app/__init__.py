@@ -1,9 +1,11 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
 import os
 import logging
 
 db = SQLAlchemy()
+login_manager = LoginManager()
 
 def create_app():
     basedir = os.path.abspath(os.path.dirname(__file__))
@@ -24,7 +26,15 @@ def create_app():
         secret_key = 'dev-key-unsafe-only-for-development'
         app.logger.warning("Using insecure development SECRET_KEY. Set SECRET_KEY env var for production.")
     app.config['SECRET_KEY'] = secret_key
+    
+    # OAuth Configuration
+    app.config['GOOGLE_CLIENT_ID'] = os.environ.get('GOOGLE_CLIENT_ID')
+    app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('GOOGLE_CLIENT_SECRET')
+    
     db.init_app(app)
+    login_manager.init_app(app)
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Please log in to access this page.'
 
     @app.context_processor
     def inject_icons():
@@ -37,8 +47,21 @@ def create_app():
         }
 
     with app.app_context():
-        from . import models, routes
+        from . import models
+        from .models import User
+        from .routes import bp as main_bp
+        from .auth_routes import bp as auth_bp, init_oauth_client
+        
+        # Initialize OAuth
+        init_oauth_client(app)
+        
+        # Load user for Flask-Login
+        @login_manager.user_loader
+        def load_user(user_id):
+            return User.query.get(int(user_id))
+        
         db.create_all()
-        app.register_blueprint(routes.bp)
+        app.register_blueprint(main_bp)
+        app.register_blueprint(auth_bp, url_prefix='/auth')
 
     return app

@@ -147,10 +147,11 @@ The app uses **SQLite** (`data.db` in project root) with the following tables:
 ## Navigation
 
 Click the navbar links to navigate between pages:
+- **Today** - Daily checklist with today's tasks and progress
 - **Schedule** - Add/view daily events
-- **Habits** - Create and track habits
+- **Habits** - Create and track habits with streak monitoring
 - **Journal** - Write entries and track mood
-- **Goals & AI** - Get suggestions for goals
+- **Goals** - Get suggestions for goals
 - **🌙 Dark Mode** - Toggle theme (persists in browser)
 
 ## Key Pages
@@ -158,7 +159,13 @@ Click the navbar links to navigate between pages:
 ### Schedule
 Organize your day with time-blocked events. Add title, date, time, duration, and notes.
 
-### Habits
+### Habits The system automatically tracks:
+- **Current Streak**: Days/weeks of consecutive completions
+- **Personal Best**: Longest streak ever achieved
+- **Completion Rate**: Percentage completed over 30 days
+- **Insights**: AI-generated motivational messages based on performance
+
+For detailed information, see [HABIT_TRACKING.md](HABIT_TRACKING.md).
 Build consistency by tracking daily/weekly habits. View streak, completion %, and frequency.
 
 ### Journal

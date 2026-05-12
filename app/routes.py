@@ -1,8 +1,10 @@
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, flash
+from flask_login import login_required, current_user
 from . import db
-from .models import ScheduleEvent, Habit, JournalEntry, Goal, DailyChecklistItem, Task, DailyMetric
+from .models import ScheduleEvent, Habit, JournalEntry, Goal, DailyChecklistItem, Task, DailyMetric, HabitEntry
 from .ai import get_ai_suggestions
 from .validators import validate_schedule_event, validate_habit, validate_journal_entry, validate_goal_setup
+from .habit_tracker import HabitTracker
 from datetime import datetime, timedelta
 import json
 import logging
@@ -15,12 +17,18 @@ bp = Blueprint('main', __name__)
 def favicon():
     return redirect(url_for('static', filename='favicon.svg'))
 
+@bp.route('/privacy')
+def privacy_policy():
+    """Display privacy policy and GDPR information."""
+    return render_template('privacy_policy.html')
+
 @bp.route('/')
+@login_required
 def index():
     try:
-        schedules = ScheduleEvent.query.order_by(ScheduleEvent.date).all()
-        habits = Habit.query.order_by(Habit.id).all()
-        journals = JournalEntry.query.order_by(JournalEntry.created_at.desc()).limit(20).all()
+        schedules = ScheduleEvent.query.filter_by(user_id=current_user.id).order_by(ScheduleEvent.date).all()
+        habits = Habit.query.filter_by(user_id=current_user.id).order_by(Habit.id).all()
+        journals = JournalEntry.query.filter_by(user_id=current_user.id).order_by(JournalEntry.created_at.desc()).limit(20).all()
     except Exception as e:
         logger.error(f"Error loading index page: {str(e)}")
         flash("Error loading data. Please try again.", "error")
@@ -28,22 +36,23 @@ def index():
     return render_template('index.html', schedules=schedules, habits=habits, journals=journals)
 
 @bp.route('/habits')
+@login_required
 def habits_page():
-    try: as e:
+    try:
+        habits = Habit.query.filter_by(user_id=current_user.id).order_by(Habit.id).all()
+    except Exception as e:
         logger.error(f"Error loading habits page: {str(e)}")
         flash("Error loading habits. Please try again.", "error")
-        habits = Habit.query.order_by(Habit.id).all()
-    except Exception:
         habits = []
     return render_template('habits.html', habits=habits)
 
 @bp.route('/journal')
 def journal_page():
-    try: as e:
+    try:
+        journals = JournalEntry.query.order_by(JournalEntry.created_at.desc()).all()
+    except Exception as e:
         logger.error(f"Error loading journal page: {str(e)}")
         flash("Error loading journal. Please try again.", "error")
-        journals = JournalEntry.query.order_by(JournalEntry.created_at.desc()).all()
-    except Exception:
         journals = []
     return render_template('journal.html', journals=journals)
 
@@ -123,6 +132,145 @@ def add_habit():
         habits = Habit.query.order_by(Habit.id).all()
         return render_template('partials/habits_list.html', habits=habits)
     return redirect(url_for('main.habits_page'))
+
+@bp.route('/api/habit/<int:habit_id>/log', methods=['POST'])
+def log_habit_completion(habit_id):
+    """Log a habit completion for today or a specific date."""
+    try:
+        # Handle both form data and JSON payloads
+        json_data = request.get_json(silent=True) or {}
+        date_str = request.form.get('date') or json_data.get('date')
+        completed_str = request.form.get('completed') or json_data.get('completed', 'true')
+        completed = str(completed_str).lower() in ['true', '1', 'yes']
+        notes = request.form.get('notes', '').strip() or None
+        
+        log_date = None
+        if date_str:
+            try:
+                log_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            except ValueError:
+                log_date = datetime.utcnow().date()
+        else:
+            log_date = datetime.utcnow().date()
+        
+        # Log the habit
+        entry = HabitTracker.log_habit_completion(habit_id, log_date, completed, notes)
+        
+        if entry:
+            flash('Habit logged successfully', 'success')
+            
+            # Return HTML for HTMX requests, JSON otherwise
+            if request.headers.get('HX-Request'):
+                habits = Habit.query.order_by(Habit.id).all()
+                return render_template('partials/habits_list.html', habits=habits), 200
+            else:
+                return {'success': True, 'habit_id': habit_id, 'completed': completed}, 200
+        else:
+            if request.headers.get('HX-Request'):
+                flash('Habit not found', 'error')
+                habits = Habit.query.order_by(Habit.id).all()
+                return render_template('partials/habits_list.html', habits=habits), 404
+            else:
+                return {'error': 'Habit not found'}, 404
+    except Exception as e:
+        logger.error(f"Error logging habit {habit_id}: {str(e)}")
+        if request.headers.get('HX-Request'):
+            flash(f'Error: {str(e)}', 'error')
+            habits = Habit.query.order_by(Habit.id).all()
+            return render_template('partials/habits_list.html', habits=habits), 500
+        else:
+            return {'error': str(e)}, 500
+
+@bp.route('/api/habit/<int:habit_id>/stats')
+def get_habit_stats(habit_id):
+    """Get detailed statistics for a habit."""
+    try:
+        days = request.args.get('days', 30, type=int)
+        stats = HabitTracker.get_habit_statistics(habit_id, days)
+        
+        if not stats:
+            return {'error': 'Habit not found'}, 404
+        
+        # Convert dates to strings for JSON serialization
+        stats['last_completed'] = str(stats['last_completed']) if stats['last_completed'] else None
+        stats['created_at'] = stats['created_at'].isoformat()
+        stats['entries'] = [
+            {
+                'date': str(e.date),
+                'completed': e.completed,
+                'notes': e.notes
+            } for e in stats['entries']
+        ]
+        
+        return stats, 200
+    except Exception as e:
+        logger.error(f"Error getting habit stats {habit_id}: {str(e)}")
+        return {'error': str(e)}, 500
+
+@bp.route('/api/habit/<int:habit_id>/insights')
+def get_habit_insights(habit_id):
+    """Get insights and recommendations for a habit."""
+    try:
+        insights = HabitTracker.generate_habit_insights(habit_id)
+        
+        if not insights:
+            return {'error': 'Habit not found'}, 404
+        
+        return insights, 200
+    except Exception as e:
+        logger.error(f"Error getting habit insights {habit_id}: {str(e)}")
+        return {'error': str(e)}, 500
+
+@bp.route('/habit/<int:habit_id>/details')
+def habit_details(habit_id):
+    """Display detailed view of a single habit with history and insights."""
+    try:
+        habit = Habit.query.get(habit_id)
+        if not habit:
+            flash('Habit not found', 'error')
+            return redirect(url_for('main.habits_page'))
+        
+        # Get statistics and history
+        stats = HabitTracker.get_habit_statistics(habit_id, days=90)
+        history = HabitTracker.get_habit_history(habit_id, days=30)
+        insights = HabitTracker.generate_habit_insights(habit_id)
+        is_completed_today = HabitTracker.is_habit_completed_today(habit_id)
+        
+        return render_template(
+            'habit_details.html',
+            habit=habit,
+            stats=stats,
+            history=history,
+            insights=insights,
+            is_completed_today=is_completed_today,
+            now=datetime.utcnow()
+        )
+    except Exception as e:
+        logger.error(f"Error loading habit details: {str(e)}")
+        flash('Error loading habit details', 'error')
+        return redirect(url_for('main.habits_page'))
+
+@bp.route('/api/habit/<int:habit_id>/delete', methods=['POST'])
+def delete_habit(habit_id):
+    """Delete a habit and all its entries."""
+    try:
+        habit = Habit.query.get(habit_id)
+        if not habit:
+            return {'error': 'Habit not found'}, 404
+        
+        db.session.delete(habit)
+        db.session.commit()
+        flash(f'Habit "{habit.name}" deleted', 'success')
+        
+        if request.headers.get('HX-Request'):
+            habits = Habit.query.order_by(Habit.id).all()
+            return render_template('partials/habits_list.html', habits=habits)
+        
+        return redirect(url_for('main.habits_page'))
+    except Exception as e:
+        logger.error(f"Error deleting habit {habit_id}: {str(e)}")
+        db.session.rollback()
+        return {'error': str(e)}, 500
 
 @bp.route('/journal/add', methods=['POST'])
 def add_journal():

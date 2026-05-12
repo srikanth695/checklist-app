@@ -1,0 +1,403 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - Checklist App{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1>🚀 Create Account</h1>
+      <p>Start building better habits today</p>
+    </div>
+
+    <form method="POST" class="auth-form">
+      {{ form.hidden_tag() }}
+      
+      <div class="form-group">
+        {{ form.email.label }}
+        {% if form.email.errors %}
+          {{ form.email(class="form-control is-invalid") }}
+          <div class="invalid-feedback">
+            {% for error in form.email.errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ form.email(class="form-control") }}
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        {{ form.username.label }}
+        {% if form.username.errors %}
+          {{ form.username(class="form-control is-invalid") }}
+          <div class="invalid-feedback">
+            {% for error in form.username.errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ form.username(class="form-control") }}
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        {{ form.password.label }}
+        <small class="form-text text-muted">Minimum 8 characters</small>
+        {% if form.password.errors %}
+          {{ form.password(class="form-control is-invalid") }}
+          <div class="invalid-feedback">
+            {% for error in form.password.errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ form.password(class="form-control") }}
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        {{ form.password_confirm.label }}
+        {% if form.password_confirm.errors %}
+          {{ form.password_confirm(class="form-control is-invalid") }}
+          <div class="invalid-feedback">
+            {% for error in form.password_confirm.errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ form.password_confirm(class="form-control") }}
+        {% endif %}
+      </div>
+
+      <!-- GDPR Compliance Section -->
+      <div class="gdpr-section">
+        <h6 class="gdpr-title">Privacy & Legal</h6>
+        
+        <div class="form-check gdpr-check">
+          {% if form.data_processing_consent.errors %}
+            {{ form.data_processing_consent(class="form-check-input is-invalid") }}
+          {% else %}
+            {{ form.data_processing_consent(class="form-check-input") }}
+          {% endif %}
+          {{ form.data_processing_consent.label(class="form-check-label") }}
+          {% if form.data_processing_consent.errors %}
+            <div class="invalid-feedback">
+              {% for error in form.data_processing_consent.errors %}
+                <div>{{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+          <small class="gdpr-help">
+            We process your data according to EU GDPR regulations. 
+            <a href="#" target="_blank">View our Data Processing Agreement</a>
+          </small>
+        </div>
+
+        <div class="form-check gdpr-check">
+          {{ form.marketing_consent(class="form-check-input") }}
+          {{ form.marketing_consent.label(class="form-check-label") }}
+          <small class="gdpr-help">Optional: Receive updates about new features and tips</small>
+        </div>
+      </div>
+
+      {{ form.submit(class="btn btn-primary w-100 mb-3") }}
+    </form>
+
+    <!-- OAuth Section -->
+    <div class="oauth-divider">
+      <span>or</span>
+    </div>
+
+    <div class="oauth-buttons">
+      <a href="{{ url_for('auth.login_google') }}" class="btn btn-oauth-google w-100">
+        <img src="https://www.gstatic.com/firebaseapp/v8.10.1/images/google.svg" alt="Google" class="oauth-icon">
+        Sign up with Google
+      </a>
+    </div>
+
+    <!-- Footer -->
+    <div class="auth-footer">
+      <p>Already have an account? <a href="{{ url_for('auth.login') }}">Sign in here</a></p>
+      <small class="text-muted">
+        By signing up, you agree to our 
+        <a href="#" target="_blank">Privacy Policy</a> and 
+        <a href="#" target="_blank">Terms of Service</a>
+      </small>
+    </div>
+  </div>
+</div>
+
+<style>
+.auth-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+}
+
+.auth-card {
+    background: var(--md-sys-color-surface);
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideInUp 0.6s ease-out;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-header h1 {
+    color: var(--md-sys-color-primary);
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+}
+
+.auth-header p {
+    color: var(--md-sys-color-on-surface);
+    opacity: 0.7;
+}
+
+.auth-form {
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface);
+}
+
+.form-group small {
+    display: block;
+    margin-top: 4px;
+    opacity: 0.7;
+    font-size: 0.85rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--md-sys-color-surface-variant);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--md-sys-color-on-surface);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    border-color: var(--md-sys-color-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(208, 188, 255, 0.1);
+}
+
+/* GDPR Section */
+.gdpr-section {
+    background: rgba(208, 188, 255, 0.08);
+    border-left: 3px solid var(--md-sys-color-primary);
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.gdpr-title {
+    color: var(--md-sys-color-primary);
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    font-size: 0.95rem;
+}
+
+.gdpr-check {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.gdpr-check .form-check-input {
+    margin-top: 4px;
+    margin-right: 12px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    accent-color: var(--md-sys-color-primary);
+}
+
+.gdpr-check .form-check-label {
+    cursor: pointer;
+    margin: 0;
+    color: var(--md-sys-color-on-surface);
+    font-size: 0.95rem;
+}
+
+.gdpr-help {
+    display: block;
+    margin-top: 6px;
+    margin-left: 30px;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    line-height: 1.4;
+}
+
+.gdpr-help a {
+    color: var(--md-sys-color-primary);
+    text-decoration: none;
+}
+
+.gdpr-help a:hover {
+    text-decoration: underline;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+}
+
+.form-check-input {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    cursor: pointer;
+    accent-color: var(--md-sys-color-primary);
+}
+
+.form-check-label {
+    cursor: pointer;
+    color: var(--md-sys-color-on-surface);
+    margin: 0;
+}
+
+.btn.btn-primary {
+    background-color: var(--md-sys-color-primary);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn.btn-primary:hover {
+    background-color: #5a4a7f;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(208, 188, 255, 0.3);
+}
+
+.oauth-divider {
+    display: flex;
+    align-items: center;
+    margin: 25px 0;
+    color: var(--md-sys-color-on-surface);
+    opacity: 0.5;
+}
+
+.oauth-divider::before,
+.oauth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--md-sys-color-surface-variant);
+}
+
+.oauth-divider span {
+    margin: 0 15px;
+}
+
+.oauth-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn.btn-oauth-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    border: 1px solid var(--md-sys-color-surface-variant);
+    background: transparent;
+    color: var(--md-sys-color-on-surface);
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn.btn-oauth-google:hover {
+    background: rgba(66, 133, 244, 0.1);
+    border-color: #4285f4;
+    color: #4285f4;
+}
+
+.oauth-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--md-sys-color-surface-variant);
+}
+
+.auth-footer p {
+    color: var(--md-sys-color-on-surface);
+    margin-bottom: 10px;
+}
+
+.auth-footer a {
+    color: var(--md-sys-color-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.auth-footer small {
+    display: block;
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+.invalid-feedback {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 5px;
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 25px;
+    }
+    
+    .auth-header h1 {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

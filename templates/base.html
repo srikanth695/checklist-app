@@ -22,6 +22,7 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
+          {% if current_user.is_authenticated %}
           <li class="nav-item">
             <a class="nav-link d-flex align-items-center" href="{{ url_for('main.daily_checklist') }}"><span class="material-symbols-outlined me-1">checklist_rtl</span>Today</a>
           </li>
@@ -42,6 +43,26 @@
               <span id="themeIcon">🌙</span>
             </button>
           </li>
+          <li class="nav-item ms-3">
+            <div class="dropdown">
+              <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                👤 {{ current_user.first_name or current_user.username or current_user.email.split('@')[0] }}
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{{ url_for('auth.settings') }}">⚙️ Settings</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">🚪 Logout</a></li>
+              </ul>
+            </div>
+          </li>
+          {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('auth.login') }}">Sign In</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link btn btn-sm btn-primary ms-2" href="{{ url_for('auth.signup') }}">Sign Up</a>
+          </li>
+          {% endif %}
         </ul>
       </div>
     </div>

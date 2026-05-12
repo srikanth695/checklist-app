@@ -5,18 +5,21 @@
 {% block content %}
 <div class="hero" style="background: linear-gradient(135deg, #198754, #146c43);">
   <h1>🔄 Build Habits</h1>
-  <p>Track your daily and weekly habits to build consistency</p>
+  <p>Track your daily and weekly habits to build consistency and maintain streaks</p>
 </div>
 
-<div class="row">
-  <div class="col-lg-5">
+<div class="row mt-4">
+  <!-- Create Habit Form -->
+  <div class="col-lg-4">
     <div class="input-card">
-      <h5>Create New Habit</h5>
+      <h5>📝 Create New Habit</h5>
       <form hx-post="{{ url_for('main.add_habit') }}" hx-target="#habits-list" hx-swap="innerHTML">
         <div class="mb-3">
           <label class="form-label">Habit Name</label>
           <input class="form-control" name="name" placeholder="e.g., Morning exercise" required>
+          <small class="form-text text-muted">What habit do you want to build?</small>
         </div>
+        
         <div class="mb-3">
           <label class="form-label">Frequency</label>
           <select name="frequency" class="form-select">
@@ -24,16 +27,39 @@
             <option value="weekly">Weekly</option>
             <option value="every_other_day">Every other day</option>
           </select>
+          <small class="form-text text-muted">How often do you want to do this?</small>
         </div>
-        <button class="btn btn-success w-100">Create Habit</button>
+        
+        <button class="btn btn-success w-100">
+          <span class="material-symbols-outlined me-1">add</span>
+          Create Habit
+        </button>
       </form>
+    </div>
+
+    <!-- Quick Tips -->
+    <div class="card mt-3">
+      <div class="card-header bg-light">
+        <h6 class="mb-0">💡 Tips for Success</h6>
+      </div>
+      <div class="card-body small">
+        <ul class="mb-0">
+          <li>Start with small habits</li>
+          <li>Track daily for consistency</li>
+          <li>Build streaks gradually</li>
+          <li>Use the details page for insights</li>
+          <li>Don't give up on day 1!</li>
+        </ul>
+      </div>
     </div>
   </div>
 
-  <div class="col-lg-7">
+  <!-- Habits List -->
+  <div class="col-lg-8">
     <div class="card">
-      <div class="card-header">
+      <div class="card-header bg-light d-flex justify-content-between align-items-center">
         <h5 class="mb-0">✨ Active Habits</h5>
+        <small class="text-muted" id="habit-count"></small>
       </div>
       <div class="card-body">
         <div id="habits-list">
@@ -41,6 +67,35 @@
         </div>
       </div>
     </div>
+
+    <!-- Tracking Guide -->
+    <div class="alert alert-info mt-3" role="alert">
+      <h6 class="alert-heading">📊 How Tracking Works</h6>
+      <small>
+        <strong>Streak:</strong> Consecutive days/weeks you complete the habit<br>
+        <strong>Best:</strong> Your personal record streak<br>
+        <strong>Rate:</strong> Percentage completed over last 30 days<br>
+        <strong>Last:</strong> When you last completed it
+      </small>
+    </div>
   </div>
 </div>
+
+<script>
+  // Update habit count
+  function updateHabitCount() {
+    const habitItems = document.querySelectorAll('.list-group-item').length;
+    document.getElementById('habit-count').textContent = `${habitItems} habit${habitItems !== 1 ? 's' : ''} tracked`;
+  }
+
+  // Update on page load
+  updateHabitCount();
+
+  // Update after HTMX requests
+  document.body.addEventListener('htmx:afterSwap', function(evt) {
+    if (evt.detail.xhr.responseURL && evt.detail.xhr.responseURL.includes('habit')) {
+      updateHabitCount();
+    }
+  });
+</script>
 {% endblock %}

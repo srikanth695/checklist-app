@@ -1,0 +1,480 @@
+{% extends "base.html" %}
+
+{% block title %}Account Settings - Checklist App{% endblock %}
+
+{% block content %}
+<div class="hero" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+  <h1>⚙️ Account Settings</h1>
+  <p>Manage your privacy, security, and preferences</p>
+</div>
+
+<div class="settings-container">
+  <div class="row mt-4">
+    <!-- Settings Menu -->
+    <div class="col-lg-3 mb-4">
+      <div class="settings-menu">
+        <a href="#profile" class="menu-item active" data-target="profile">
+          👤 Profile
+        </a>
+        <a href="#privacy" class="menu-item" data-target="privacy">
+          🔒 Privacy & GDPR
+        </a>
+        <a href="#security" class="menu-item" data-target="security">
+          🔐 Security
+        </a>
+        <a href="#data" class="menu-item" data-target="data">
+          📊 My Data
+        </a>
+      </div>
+    </div>
+
+    <!-- Settings Panels -->
+    <div class="col-lg-9">
+      <!-- Profile Section -->
+      <div id="profile" class="settings-panel active">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">👤 Profile Information</h5>
+          </div>
+          <div class="card-body">
+            <form method="POST" class="settings-form">
+              {{ form.hidden_tag() }}
+              
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" class="form-control" value="{{ current_user.email }}" disabled>
+                <small class="form-text text-muted">Your email cannot be changed</small>
+              </div>
+
+              {% if current_user.username %}
+              <div class="form-group">
+                <label>Username</label>
+                <input type="text" class="form-control" value="{{ current_user.username }}" disabled>
+                <small class="form-text text-muted">Username cannot be changed</small>
+              </div>
+              {% endif %}
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    {{ form.first_name.label }}
+                    {{ form.first_name(class="form-control") }}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    {{ form.last_name.label }}
+                    {{ form.last_name(class="form-control") }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Account Created</label>
+                <input type="text" class="form-control" value="{{ current_user.created_at.strftime('%B %d, %Y') }}" disabled>
+              </div>
+
+              {% if current_user.last_login %}
+              <div class="form-group">
+                <label>Last Login</label>
+                <input type="text" class="form-control" value="{{ current_user.last_login.strftime('%B %d, %Y at %H:%M UTC') }}" disabled>
+              </div>
+              {% endif %}
+
+              {{ form.submit(class="btn btn-primary") }}
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Privacy & GDPR Section -->
+      <div id="privacy" class="settings-panel">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">🔒 Privacy & GDPR Compliance</h5>
+          </div>
+          <div class="card-body">
+            <div class="privacy-info">
+              <div class="info-block">
+                <h6>📋 Your Data & Consent</h6>
+                <p>
+                  Your personal data is protected under the EU General Data Protection Regulation (GDPR).
+                  We only collect and process data that you explicitly consent to.
+                </p>
+                <ul class="consent-list">
+                  <li>✓ Data Processing Consent: <strong>{{ 'Granted' if current_user.data_processing_consent else 'Not granted' }}</strong></li>
+                  <li>✓ Email Verified: <strong>{{ 'Yes' if current_user.email_verified else 'No' }}</strong></li>
+                  {% if current_user.gdpr_consent_date %}
+                  <li>✓ Consented on: <strong>{{ current_user.gdpr_consent_date.strftime('%B %d, %Y') }}</strong></li>
+                  {% endif %}
+                </ul>
+              </div>
+
+              <div class="info-block">
+                <h6>📧 Marketing Communications</h6>
+                <div class="form-check">
+                  <input type="checkbox" id="marketing" class="form-check-input" 
+                    {% if current_user.marketing_consent %}checked{% endif %} disabled>
+                  <label class="form-check-label" for="marketing">
+                    Receive promotional emails about new features
+                  </label>
+                </div>
+              </div>
+
+              <div class="info-block alert alert-info">
+                <h6>🛡️ Your Rights Under GDPR</h6>
+                <ul style="margin-bottom: 0;">
+                  <li><strong>Right to Access:</strong> Export your complete data at any time</li>
+                  <li><strong>Right to Rectification:</strong> Update or correct your information</li>
+                  <li><strong>Right to Erasure:</strong> Request deletion of your data (right to be forgotten)</li>
+                  <li><strong>Right to Data Portability:</strong> Download your data in portable format</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Section -->
+      <div id="security" class="settings-panel">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">🔐 Security</h5>
+          </div>
+          <div class="card-body">
+            {% if current_user.password_hash %}
+            <div class="security-section">
+              <h6>Change Password</h6>
+              <form method="POST" action="{{ url_for('auth.change_password') }}" class="settings-form">
+                {{ change_password_form.hidden_tag() }}
+                
+                <div class="form-group">
+                  {{ change_password_form.current_password.label }}
+                  {{ change_password_form.current_password(class="form-control") }}
+                  {% if change_password_form.current_password.errors %}
+                    <div class="invalid-feedback" style="display: block;">
+                      {% for error in change_password_form.current_password.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+
+                <div class="form-group">
+                  {{ change_password_form.new_password.label }}
+                  {{ change_password_form.new_password(class="form-control") }}
+                  <small class="form-text text-muted">Minimum 8 characters</small>
+                </div>
+
+                <div class="form-group">
+                  {{ change_password_form.new_password_confirm.label }}
+                  {{ change_password_form.new_password_confirm(class="form-control") }}
+                </div>
+
+                <button type="submit" class="btn btn-warning">Update Password</button>
+              </form>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+              <strong>OAuth Account:</strong> Your account uses Google sign-in. You don't have a password to change.
+            </div>
+            {% endif %}
+
+            <hr>
+
+            <div class="security-section">
+              <h6>Active Sessions</h6>
+              <div class="session-info">
+                <p>Last Login IP: <code>{{ current_user.last_ip or 'N/A' }}</code></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Management Section -->
+      <div id="data" class="settings-panel">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">📊 My Data</h5>
+          </div>
+          <div class="card-body">
+            <div class="data-actions">
+              <div class="action-block">
+                <h6>📥 Download My Data</h6>
+                <p>Export all your personal data, habits, goals, and journals in JSON format.</p>
+                <a href="{{ url_for('auth.export_data') }}" class="btn btn-info">
+                  📥 Export My Data
+                </a>
+              </div>
+
+              <hr>
+
+              <div class="action-block">
+                <h6 style="color: #dc3545;">🗑️ Delete My Account</h6>
+                <p>
+                  Permanently delete your account and all associated data. 
+                  This action cannot be undone. We will delete your data within 30 days per GDPR regulations.
+                </p>
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal">
+                  🗑️ Delete Account
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Account Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">⚠️ Delete Account</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Are you sure you want to delete your account?</strong></p>
+        <p>This action:</p>
+        <ul>
+          <li>Permanently deletes all your habits, goals, and journals</li>
+          <li>Cannot be undone</li>
+          <li>Takes effect within 30 days per GDPR</li>
+        </ul>
+        <p class="text-muted">Type your email to confirm: <code>{{ current_user.email }}</code></p>
+        <input type="text" id="deleteConfirmEmail" class="form-control" placeholder="Enter your email to confirm">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form method="POST" action="{{ url_for('auth.delete_account') }}" style="display:inline;">
+          <button type="submit" class="btn btn-danger" id="deleteConfirmBtn" disabled>Delete Account Permanently</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.settings-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.settings-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.menu-item {
+    display: block;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--md-sys-color-on-surface);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+}
+
+.menu-item:hover {
+    background: rgba(208, 188, 255, 0.1);
+    border-left-color: var(--md-sys-color-primary);
+}
+
+.menu-item.active {
+    background: rgba(208, 188, 255, 0.15);
+    border-left-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-primary);
+    font-weight: 600;
+}
+
+.settings-panel {
+    display: none;
+}
+
+.settings-panel.active {
+    display: block;
+    animation: fadeInScale 0.3s ease-out;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    background: var(--md-sys-color-surface);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid var(--md-sys-color-surface-variant);
+    padding: 20px;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--md-sys-color-on-surface);
+}
+
+.form-control {
+    background: transparent;
+    border: 1px solid var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface);
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.form-control:focus {
+    border-color: var(--md-sys-color-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(208, 188, 255, 0.1);
+}
+
+.form-control:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.consent-list {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+}
+
+.consent-list li {
+    padding: 8px 0;
+    color: var(--md-sys-color-on-surface);
+}
+
+.info-block {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(208, 188, 255, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid var(--md-sys-color-primary);
+}
+
+.info-block h6 {
+    color: var(--md-sys-color-primary);
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.info-block p {
+    margin-bottom: 10px;
+    color: var(--md-sys-color-on-surface);
+}
+
+.info-block ul {
+    margin: 10px 0;
+    padding-left: 20px;
+    color: var(--md-sys-color-on-surface);
+}
+
+.security-section {
+    margin-bottom: 30px;
+}
+
+.security-section h6 {
+    color: var(--md-sys-color-primary);
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.session-info {
+    background: rgba(208, 188, 255, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.session-info code {
+    background: transparent;
+    color: #0084ff;
+    font-family: 'Courier New', monospace;
+    padding: 2px 6px;
+}
+
+.data-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.action-block {
+    padding: 20px;
+    background: rgba(208, 188, 255, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid var(--md-sys-color-primary);
+}
+
+.action-block h6 {
+    color: var(--md-sys-color-primary);
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.action-block p {
+    color: var(--md-sys-color-on-surface);
+    margin-bottom: 15px;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+</style>
+
+<script>
+document.querySelectorAll('.menu-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = this.dataset.target;
+        
+        // Hide all panels
+        document.querySelectorAll('.settings-panel').forEach(panel => {
+            panel.classList.remove('active');
+        });
+        
+        // Remove active from all menu items
+        document.querySelectorAll('.menu-item').forEach(m => {
+            m.classList.remove('active');
+        });
+        
+        // Show selected panel and mark as active
+        document.getElementById(target).classList.add('active');
+        this.classList.add('active');
+    });
+});
+
+// Delete account confirmation
+const deleteConfirmInput = document.getElementById('deleteConfirmEmail');
+const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
+const userEmail = '{{ current_user.email }}';
+
+if (deleteConfirmInput) {
+    deleteConfirmInput.addEventListener('input', function() {
+        deleteConfirmBtn.disabled = this.value !== userEmail;
+    });
+}
+</script>
+{% endblock %}
