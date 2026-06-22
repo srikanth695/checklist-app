@@ -61,7 +61,7 @@ def validate_goal_setup(category, timeframe, current_situation, desired_outcome)
     """Validate goal setup input. Returns (is_valid, error_message)."""
     errors = []
     
-    valid_categories = ['health', 'career', 'learning', 'fitness', 'personal', 'finance', 'other']
+    valid_categories = ['health', 'career', 'learning', 'fitness', 'personal', 'relationships', 'finance', 'other']
     if not category or category not in valid_categories:
         errors.append(f"Category must be one of: {', '.join(valid_categories)}")
     

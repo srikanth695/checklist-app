@@ -35,6 +35,58 @@
         <div id="journal-list">
           {% include 'partials/journal_list.html' %}
         </div>
+        
+        <!-- Pagination Controls -->
+        {% if total_pages > 1 %}
+        <nav aria-label="Journal pagination" class="mt-4">
+          <ul class="pagination justify-content-center mb-0">
+            {% if current_page > 1 %}
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('main.journal_page', page=1) }}">First</a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('main.journal_page', page=current_page-1) }}">Previous</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">First</span>
+            </li>
+            <li class="page-item disabled">
+              <span class="page-link">Previous</span>
+            </li>
+            {% endif %}
+            
+            {% for page_num in range(max(1, current_page-2), min(total_pages+1, current_page+3)) %}
+              {% if page_num == current_page %}
+              <li class="page-item active">
+                <span class="page-link">{{ page_num }}</span>
+              </li>
+              {% else %}
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.journal_page', page=page_num) }}">{{ page_num }}</a>
+              </li>
+              {% endif %}
+            {% endfor %}
+            
+            {% if current_page < total_pages %}
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('main.journal_page', page=current_page+1) }}">Next</a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('main.journal_page', page=total_pages) }}">Last</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">Next</span>
+            </li>
+            <li class="page-item disabled">
+              <span class="page-link">Last</span>
+            </li>
+            {% endif %}
+          </ul>
+        </nav>
+        <small class="text-center d-block text-muted mt-2">Page {{ current_page }} of {{ total_pages }}</small>
+        {% endif %}
       </div>
     </div>
   </div>

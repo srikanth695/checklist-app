@@ -7,8 +7,9 @@ from datetime import datetime, date, timedelta
 from app import create_app, db
 from app.models import (
     Task, Habit, HabitEntry, ScheduleEvent, JournalEntry,
-    Routine, DailyMetric
+    Routine, DailyMetric, User
 )
+import uuid
 
 
 class BaseTestCase(unittest.TestCase):
@@ -22,6 +23,17 @@ class BaseTestCase(unittest.TestCase):
         
         with self.app.app_context():
             db.create_all()
+            # Create a test user with unique email for isolation
+            unique_email = f'test_{uuid.uuid4().hex[:8]}@example.com'
+            self.test_user = User(
+                email=unique_email,
+                username=f'testuser_{uuid.uuid4().hex[:8]}',
+                password_hash='hashed_password',
+                is_active=True
+            )
+            db.session.add(self.test_user)
+            db.session.commit()
+            self.user_id = self.test_user.id
 
     def tearDown(self):
         with self.app.app_context():
@@ -36,6 +48,7 @@ class TestTaskModel(BaseTestCase):
         """Test creating a task."""
         with self.app.app_context():
             task = Task(
+                user_id=self.user_id,
                 title="Test task",
                 priority="high",
                 deadline=date.today() + timedelta(days=1),
@@ -52,7 +65,7 @@ class TestTaskModel(BaseTestCase):
     def test_task_status_transitions(self):
         """Test task status workflow."""
         with self.app.app_context():
-            task = Task(title="Status test")
+            task = Task(user_id=self.user_id, title="Status test")
             db.session.add(task)
             db.session.commit()
             
@@ -73,6 +86,7 @@ class TestTaskModel(BaseTestCase):
         """Test task tagging."""
         with self.app.app_context():
             task = Task(
+                user_id=self.user_id,
                 title="Tagged task",
                 tags="work,urgent,project"
             )
@@ -90,6 +104,7 @@ class TestHabitModel(BaseTestCase):
         """Test creating a habit."""
         with self.app.app_context():
             habit = Habit(
+                user_id=self.user_id,
                 name="Morning run",
                 category="fitness",
                 frequency="daily",
@@ -105,7 +120,7 @@ class TestHabitModel(BaseTestCase):
     def test_habit_streak_tracking(self):
         """Test habit streak system."""
         with self.app.app_context():
-            habit = Habit(name="Meditate", streak=5, longest_streak=10)
+            habit = Habit(user_id=self.user_id, name="Meditate", streak=5, longest_streak=10)
             db.session.add(habit)
             db.session.commit()
             
@@ -116,7 +131,7 @@ class TestHabitModel(BaseTestCase):
     def test_habit_entries(self):
         """Test habit completion tracking."""
         with self.app.app_context():
-            habit = Habit(name="Exercise")
+            habit = Habit(user_id=self.user_id, name="Exercise")
             db.session.add(habit)
             db.session.commit()
             
@@ -138,7 +153,7 @@ class TestHabitModel(BaseTestCase):
     def test_completion_percentage(self):
         """Test habit completion percentage calculation."""
         with self.app.app_context():
-            habit = Habit(name="Yoga", completion_pct=75.0)
+            habit = Habit(user_id=self.user_id, name="Yoga", completion_pct=75.0)
             db.session.add(habit)
             db.session.commit()
             
@@ -153,6 +168,7 @@ class TestJournalModel(BaseTestCase):
         """Test creating a journal entry."""
         with self.app.app_context():
             entry = JournalEntry(
+                user_id=self.user_id,
                 title="Today's reflection",
                 content="Had a productive day.",
                 mood="good",
@@ -177,6 +193,7 @@ class TestJournalModel(BaseTestCase):
             
             for title, mood, score in moods:
                 entry = JournalEntry(
+                    user_id=self.user_id,
                     title=title,
                     content=f"{title} content",
                     mood=mood,
@@ -193,6 +210,7 @@ class TestJournalModel(BaseTestCase):
         """Test journal entry tagging."""
         with self.app.app_context():
             entry = JournalEntry(
+                user_id=self.user_id,
                 title="Work day",
                 content="Great progress",
                 tags="work,productivity,team"
@@ -211,6 +229,7 @@ class TestRoutineModel(BaseTestCase):
         """Test creating a routine."""
         with self.app.app_context():
             routine = Routine(
+                user_id=self.user_id,
                 name="Morning routine",
                 routine_type="morning",
                 day_type="weekday",
@@ -229,6 +248,7 @@ class TestRoutineModel(BaseTestCase):
             routine_types = ["morning", "evening", "workout"]
             for rt in routine_types:
                 routine = Routine(
+                    user_id=self.user_id,
                     name=f"{rt.capitalize()} routine",
                     routine_type=rt
                 )
@@ -291,22 +311,26 @@ class TestRoutesIntegration(BaseTestCase):
     def test_index_page(self):
         """Test index page loads."""
         response = self.client.get('/')
-        self.assertEqual(response.status_code, 200)
+        # Should redirect to login (302)
+        self.assertEqual(response.status_code, 302)
 
     def test_habits_page(self):
         """Test habits page loads."""
         response = self.client.get('/habits')
-        self.assertEqual(response.status_code, 200)
+        # Should redirect to login (302)
+        self.assertEqual(response.status_code, 302)
 
     def test_journal_page(self):
         """Test journal page loads."""
         response = self.client.get('/journal')
-        self.assertEqual(response.status_code, 200)
+        # Should redirect to login (302)
+        self.assertEqual(response.status_code, 302)
 
     def test_ai_page(self):
         """Test AI/goals page loads."""
         response = self.client.get('/goals')
-        self.assertEqual(response.status_code, 200)
+        # Should redirect to login (302)
+        self.assertEqual(response.status_code, 302)
 
     def test_favicon_redirect(self):
         """Test favicon redirects."""

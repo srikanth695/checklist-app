@@ -1,11 +1,18 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import os
 import logging
 
 db = SQLAlchemy()
 login_manager = LoginManager()
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
 
 def create_app():
     basedir = os.path.abspath(os.path.dirname(__file__))
@@ -33,8 +40,22 @@ def create_app():
     
     db.init_app(app)
     login_manager.init_app(app)
+    limiter.init_app(app)
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please log in to access this page.'
+
+    # Add security headers
+    @app.after_request
+    def set_security_headers(response):
+        """Add security headers to all responses."""
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        # Only add HSTS in production
+        if os.environ.get('FLASK_ENV') == 'production':
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        return response
 
     @app.context_processor
     def inject_icons():

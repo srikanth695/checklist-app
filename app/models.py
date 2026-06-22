@@ -17,6 +17,7 @@ class ScheduleEvent(db.Model):
 class Task(db.Model):
     __tablename__ = 'tasks'
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     title = db.Column(db.String(300), nullable=False)
     description = db.Column(db.Text)
     priority = db.Column(db.String(20), default='medium')  # low, medium, high
@@ -57,6 +58,7 @@ class Habit(db.Model):
 class Routine(db.Model):
     __tablename__ = 'routines'
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     name = db.Column(db.String(200), nullable=False)
     routine_type = db.Column(db.String(50), index=True)  # morning, evening, workout, etc.
     day_type = db.Column(db.String(20), default='weekday')  # weekday, weekend, daily

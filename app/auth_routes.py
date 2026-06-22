@@ -5,7 +5,7 @@ from authlib.integrations.flask_client import OAuth
 from datetime import datetime
 import logging
 
-from . import db
+from . import db, limiter
 from .models import User, AuditLog
 from .forms import LoginForm, SignUpForm, ChangePasswordForm, AccountSettingsForm
 
@@ -55,6 +55,7 @@ def log_audit_event(user_id, action, description=None):
 
 
 @bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def login():
     """User login page."""
     if current_user.is_authenticated:
@@ -87,6 +88,7 @@ def login():
 
 
 @bp.route('/signup', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def signup():
     """User registration page."""
     if current_user.is_authenticated:

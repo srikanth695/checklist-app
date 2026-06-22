@@ -39,28 +39,45 @@ def index():
 @login_required
 def habits_page():
     try:
-        habits = Habit.query.filter_by(user_id=current_user.id).order_by(Habit.id).all()
+        page = request.args.get('page', 1, type=int)
+        paginated = Habit.query.filter_by(user_id=current_user.id)\
+            .order_by(Habit.id).paginate(page=page, per_page=20, error_out=False)
+        habits = paginated.items
+        total_pages = paginated.pages
+        current_page = page
     except Exception as e:
         logger.error(f"Error loading habits page: {str(e)}")
         flash("Error loading habits. Please try again.", "error")
         habits = []
-    return render_template('habits.html', habits=habits)
+        total_pages = 1
+        current_page = 1
+    return render_template('habits.html', habits=habits, total_pages=total_pages, current_page=current_page)
 
 @bp.route('/journal')
+@login_required
 def journal_page():
     try:
-        journals = JournalEntry.query.order_by(JournalEntry.created_at.desc()).all()
+        page = request.args.get('page', 1, type=int)
+        paginated = JournalEntry.query.filter_by(user_id=current_user.id)\
+            .order_by(JournalEntry.created_at.desc()).paginate(page=page, per_page=20, error_out=False)
+        journals = paginated.items
+        total_pages = paginated.pages
+        current_page = page
     except Exception as e:
         logger.error(f"Error loading journal page: {str(e)}")
         flash("Error loading journal. Please try again.", "error")
         journals = []
-    return render_template('journal.html', journals=journals)
+        total_pages = 1
+        current_page = 1
+    return render_template('journal.html', journals=journals, total_pages=total_pages, current_page=current_page)
 
 @bp.route('/goals')
+@login_required
 def ai_page():
     return render_template('ai.html')
 
 @bp.route('/schedule/add', methods=['POST'])
+@login_required
 def add_schedule():
     title = request.form.get('title', '').strip()
     date_str = request.form.get('date')
@@ -74,13 +91,14 @@ def add_schedule():
         for error in errors:
             flash(error, "error")
         if request.headers.get('HX-Request'):
-            schedules = ScheduleEvent.query.order_by(ScheduleEvent.date).all()
+            schedules = ScheduleEvent.query.filter_by(user_id=current_user.id).order_by(ScheduleEvent.date).all()
             return render_template('partials/schedule_list.html', schedules=schedules), 400
         return redirect(url_for('main.index'))
     
     try:
         date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
         ev = ScheduleEvent(
+            user_id=current_user.id,
             title=title, 
             date=date_obj, 
             time=time or None, 
@@ -99,11 +117,12 @@ def add_schedule():
         flash("Error adding event. Please try again.", "error")
     
     if request.headers.get('HX-Request'):
-        schedules = ScheduleEvent.query.order_by(ScheduleEvent.date).all()
+        schedules = ScheduleEvent.query.filter_by(user_id=current_user.id).order_by(ScheduleEvent.date).all()
         return render_template('partials/schedule_list.html', schedules=schedules)
     return redirect(url_for('main.index'))
 
 @bp.route('/habit/add', methods=['POST'])
+@login_required
 def add_habit():
     name = request.form.get('name', '').strip()
     frequency = request.form.get('frequency', 'daily')
@@ -119,7 +138,7 @@ def add_habit():
         return redirect(url_for('main.habits_page'))
     
     try:
-        h = Habit(name=name, frequency=frequency)
+        h = Habit(user_id=current_user.id, name=name, frequency=frequency)
         db.session.add(h)
         db.session.commit()
         flash('Habit added successfully', 'success')
@@ -134,6 +153,7 @@ def add_habit():
     return redirect(url_for('main.habits_page'))
 
 @bp.route('/api/habit/<int:habit_id>/log', methods=['POST'])
+@login_required
 def log_habit_completion(habit_id):
     """Log a habit completion for today or a specific date."""
     try:
@@ -168,7 +188,7 @@ def log_habit_completion(habit_id):
         else:
             if request.headers.get('HX-Request'):
                 flash('Habit not found', 'error')
-                habits = Habit.query.order_by(Habit.id).all()
+                habits = Habit.query.filter_by(user_id=current_user.id).order_by(Habit.id).all()
                 return render_template('partials/habits_list.html', habits=habits), 404
             else:
                 return {'error': 'Habit not found'}, 404
@@ -176,12 +196,13 @@ def log_habit_completion(habit_id):
         logger.error(f"Error logging habit {habit_id}: {str(e)}")
         if request.headers.get('HX-Request'):
             flash(f'Error: {str(e)}', 'error')
-            habits = Habit.query.order_by(Habit.id).all()
+            habits = Habit.query.filter_by(user_id=current_user.id).order_by(Habit.id).all()
             return render_template('partials/habits_list.html', habits=habits), 500
         else:
             return {'error': str(e)}, 500
 
 @bp.route('/api/habit/<int:habit_id>/stats')
+@login_required
 def get_habit_stats(habit_id):
     """Get detailed statistics for a habit."""
     try:
@@ -208,6 +229,7 @@ def get_habit_stats(habit_id):
         return {'error': str(e)}, 500
 
 @bp.route('/api/habit/<int:habit_id>/insights')
+@login_required
 def get_habit_insights(habit_id):
     """Get insights and recommendations for a habit."""
     try:
@@ -222,10 +244,11 @@ def get_habit_insights(habit_id):
         return {'error': str(e)}, 500
 
 @bp.route('/habit/<int:habit_id>/details')
+@login_required
 def habit_details(habit_id):
     """Display detailed view of a single habit with history and insights."""
     try:
-        habit = Habit.query.get(habit_id)
+        habit = Habit.query.filter_by(id=habit_id, user_id=current_user.id).first()
         if not habit:
             flash('Habit not found', 'error')
             return redirect(url_for('main.habits_page'))
@@ -251,10 +274,11 @@ def habit_details(habit_id):
         return redirect(url_for('main.habits_page'))
 
 @bp.route('/api/habit/<int:habit_id>/delete', methods=['POST'])
+@login_required
 def delete_habit(habit_id):
     """Delete a habit and all its entries."""
     try:
-        habit = Habit.query.get(habit_id)
+        habit = Habit.query.filter_by(id=habit_id, user_id=current_user.id).first()
         if not habit:
             return {'error': 'Habit not found'}, 404
         
@@ -263,7 +287,7 @@ def delete_habit(habit_id):
         flash(f'Habit "{habit.name}" deleted', 'success')
         
         if request.headers.get('HX-Request'):
-            habits = Habit.query.order_by(Habit.id).all()
+            habits = Habit.query.filter_by(user_id=current_user.id).order_by(Habit.id).all()
             return render_template('partials/habits_list.html', habits=habits)
         
         return redirect(url_for('main.habits_page'))
@@ -273,6 +297,7 @@ def delete_habit(habit_id):
         return {'error': str(e)}, 500
 
 @bp.route('/journal/add', methods=['POST'])
+@login_required
 def add_journal():
     title = request.form.get('title', '').strip()
     content = request.form.get('content', '').strip()
@@ -283,12 +308,12 @@ def add_journal():
         for error in errors:
             flash(error, "error")
         if request.headers.get('HX-Request'):
-            journals = JournalEntry.query.order_by(JournalEntry.created_at.desc()).limit(20).all()
+            journals = JournalEntry.query.filter_by(user_id=current_user.id).order_by(JournalEntry.created_at.desc()).limit(20).all()
             return render_template('partials/journal_list.html', journals=journals), 400
         return redirect(url_for('main.index'))
     
     try:
-        j = JournalEntry(title=title or None, content=content or None)
+        j = JournalEntry(user_id=current_user.id, title=title or None, content=content or None)
         db.session.add(j)
         db.session.commit()
         flash('Journal entry saved successfully', 'success')
@@ -298,7 +323,7 @@ def add_journal():
         flash("Error saving journal entry. Please try again.", "error")
     
     if request.headers.get('HX-Request'):
-        journals = JournalEntry.query.order_by(JournalEntry.created_at.desc()).limit(20).all()
+        journals = JournalEntry.query.filter_by(user_id=current_user.id).order_by(JournalEntry.created_at.desc()).limit(20).all()
         return render_template('partials/journal_list.html', journals=journals)
     return redirect(url_for('main.index'))
 
@@ -320,6 +345,7 @@ def ai_suggest():
     )
 
 @bp.route('/daily-checklist')
+@login_required
 def daily_checklist():
     today = datetime.utcnow().date()
     try:
@@ -392,10 +418,12 @@ def toggle_checklist_item(item_id):
 
 # Goal Setup Routes
 @bp.route('/goal-setup')
+@login_required
 def goal_setup():
     return render_template('goal_setup.html')
 
 @bp.route('/goal-setup/confirm', methods=['POST'])
+@login_required
 def goal_setup_confirm():
     category = request.form.get('category')
     timeframe = request.form.get('timeframe')
@@ -414,6 +442,7 @@ def goal_setup_confirm():
         goal_description = f"Current: {current_situation}\nDesired: {desired_outcome}"
         
         goal = Goal(
+            user_id=current_user.id,
             title=goal_title,
             description=goal_description,
             category=category,
@@ -446,9 +475,10 @@ def goal_setup_confirm():
         return redirect(url_for('main.goal_setup'))
 
 @bp.route('/my-goals')
+@login_required
 def my_goals():
     try:
-        goals = Goal.query.order_by(Goal.status, Goal.created_at.desc()).all()
+        goals = Goal.query.filter_by(user_id=current_user.id).order_by(Goal.status, Goal.created_at.desc()).all()
         
         # Get completion stats more efficiently using aggregation
         goal_stats = []
